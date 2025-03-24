@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pocket Shitpost</title>
+    <style>
+        body {
+            background-color: #111111;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .controls {
+            background-color: #111111;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #b19cd9;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group input {
+            flex-grow: 1;
+            margin-right: 8px;
+        }
+
+        .unit {
+            color: #b19cd9;
+            min-width: 30px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            background-color: #2a2a2a;
+            border: 1px solid #b19cd9;
+            color: #e0e0e0;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #b19cd9;
+            color: #2a2a2a;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #9a7ec9;
+        }
+
+        #display {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+        }
+
+		#displayImage {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			min-width: 90%;   /* More aggressive scaling */
+			min-height: 90%;  /* More aggressive scaling */
+			max-width: 100%;
+			max-height: 100%;
+			width: auto;
+			height: auto;
+			object-fit: contain;
+			opacity: 0;
+			transition: opacity 1s;
+		}
+
+    </style>
+</head>
+<body>
+    <div class="controls" id="controls">
+        <div class="form-group">
+            <label for="imageInput">Upload Image:</label>
+            <input type="file" id="imageInput" accept="image/*">
+        </div>
+        <div class="form-group">
+            <label for="delay">Delay:</label>
+            <div class="input-group">
+                <input type="number" id="delay" value="60" min="1">
+                <span class="unit">sec</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="margin">Random Margin:</label>
+            <div class="input-group">
+                <input type="number" id="margin" value="15" min="0">
+                <span class="unit">sec</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="fadeTime">Fade Time:</label>
+            <div class="input-group">
+                <input type="number" id="fadeTime" value="1000" min="100">
+                <span class="unit">ms</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="stayTime">Show Time:</label>
+            <div class="input-group">
+                <input type="number" id="stayTime" value="3" min="1">
+                <span class="unit">sec</span>
+            </div>
+        </div>
+        <button onclick="startDisplay()">Start</button>
+    </div>
+
+    <div id="display">
+        <img id="displayImage" src="" alt="Display Image">
+    </div>
+
+    <script>
+        let imageUrl = "";
+
+        document.getElementById("imageInput").addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            imageUrl = URL.createObjectURL(file);
+        });
+
+        function startDisplay() {
+            if (!imageUrl) {
+                alert("Please upload an image first!");
+                return;
+            }
+
+            // Convert seconds to milliseconds where needed
+            const delay = parseInt(document.getElementById("delay").value) * 1000;
+            const margin = parseInt(document.getElementById("margin").value) * 1000;
+            const fadeTime = parseInt(document.getElementById("fadeTime").value);
+            const stayTime = parseInt(document.getElementById("stayTime").value) * 1000;
+
+            document.getElementById("controls").style.display = "none";
+            document.getElementById("display").style.display = "block";
+            document.documentElement.requestFullscreen();
+
+            const img = document.getElementById("displayImage");
+            img.src = imageUrl;
+
+            function showImage() {
+                img.style.transition = `opacity ${fadeTime}ms`;
+                img.style.opacity = "1";
+
+                setTimeout(() => {
+                    img.style.opacity = "0";
+                }, stayTime + fadeTime);
+
+                const randomDelay =
+                    delay + (Math.random() * 2 - 1) * margin;
+                setTimeout(showImage, randomDelay + stayTime + fadeTime * 2);
+            }
+
+            showImage();
+        }
+    </script>
+</body>
+</html>
