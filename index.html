@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pocket Shitpost</title>
+    <title>Image Fade Display</title>
     <style>
         body {
-            background-color: #111111;
+            background-color: #2a2a2a;
             color: #e0e0e0;
             font-family: Arial, sans-serif;
             margin: 0;
@@ -14,7 +14,7 @@
         }
 
         .controls {
-            background-color: #111111;
+            background-color: #3a3a3a;
             padding: 20px;
             border-radius: 10px;
             max-width: 400px;
@@ -74,27 +74,44 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
             background-color: black;
+            z-index: 1000;
         }
 
-		#displayImage {
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			min-width: 90%;   /* More aggressive scaling */
-			min-height: 90%;  /* More aggressive scaling */
-			max-width: 100%;
-			max-height: 100%;
-			width: auto;
-			height: auto;
-			object-fit: contain;
-			opacity: 0;
-			transition: opacity 1s;
-		}
+        #displayImage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            min-width: 90%;
+            min-height: 90%;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            opacity: 0;
+            transition: opacity 1s;
+        }
 
+        /* Mobiles shit */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .controls {
+                padding: 15px;
+            }
+
+            input {
+                font-size: 16px; 
+            }
+        }
     </style>
 </head>
 <body>
@@ -125,13 +142,13 @@
             </div>
         </div>
         <div class="form-group">
-            <label for="stayTime">Show Time:</label>
+            <label for="stayTime">Stay Time:</label>
             <div class="input-group">
                 <input type="number" id="stayTime" value="3" min="1">
                 <span class="unit">sec</span>
             </div>
         </div>
-        <button onclick="startDisplay()">Start</button>
+        <button onclick="startDisplay()">Start Display</button>
     </div>
 
     <div id="display">
@@ -146,24 +163,41 @@
             imageUrl = URL.createObjectURL(file);
         });
 
-        function startDisplay() {
+        async function startDisplay() {
             if (!imageUrl) {
                 alert("Please upload an image first!");
                 return;
             }
 
-            // Convert seconds to milliseconds where needed
             const delay = parseInt(document.getElementById("delay").value) * 1000;
             const margin = parseInt(document.getElementById("margin").value) * 1000;
             const fadeTime = parseInt(document.getElementById("fadeTime").value);
             const stayTime = parseInt(document.getElementById("stayTime").value) * 1000;
 
             document.getElementById("controls").style.display = "none";
-            document.getElementById("display").style.display = "block";
-            document.documentElement.requestFullscreen();
+            const display = document.getElementById("display");
+            display.style.display = "block";
+
+            try {
+                // Handle both mobile and desktop fullscreen
+                if (document.documentElement.requestFullscreen) {
+                    await document.documentElement.requestFullscreen();
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    await document.documentElement.webkitRequestFullscreen();
+                } else if (document.documentElement.msRequestFullscreen) {
+                    await document.documentElement.msRequestFullscreen();
+                }
+            } catch (error) {
+                console.log("Fullscreen not available:", error);
+            }
 
             const img = document.getElementById("displayImage");
             img.src = imageUrl;
+
+            // Ensure image is loaded before starting
+            img.onload = function() {
+                showImage();
+            };
 
             function showImage() {
                 img.style.transition = `opacity ${fadeTime}ms`;
@@ -177,8 +211,6 @@
                     delay + (Math.random() * 2 - 1) * margin;
                 setTimeout(showImage, randomDelay + stayTime + fadeTime * 2);
             }
-
-            showImage();
         }
     </script>
 </body>
